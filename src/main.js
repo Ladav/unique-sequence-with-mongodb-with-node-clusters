@@ -1,5 +1,7 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 
 const RegistrationNumberCounter = new mongoose.Schema({
   code: String,
@@ -14,12 +16,11 @@ const registrationNumberModel = mongoose.model(
 const clusterInfo = `${process.env.name}-${process.env.pm_id}`;
 const code = "test";
 const year = 0;
-const logs = [];
+const logs = {};
 
-// function myLogs(str) {
-//   logs.push(str);
-//   // console.log(str);
-// }
+function myLog(num) {
+  logs[num] = num;
+}
 
 async function getNextCount() {
   const counter = await registrationNumberModel.findOneAndUpdate(
@@ -47,9 +48,14 @@ async function main() {
 
       lastCounter = counter;
 
-      // myLogs(`${clusterInfo} ${counter}`);
+      myLog(counter.count);
     }
     console.log(`✔️ ${clusterInfo} my last counter was -> ${lastCounter}`);
+
+    await fs.promises.writeFile(
+      path.resolve(__dirname, "../logs", `${clusterInfo}.json`),
+      JSON.stringify(logs, null, 2)
+    );
   }, 5000);
 }
 
